@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Minha Coleção de Produtos - Cadastro</title>
+  <!-- Importando a fonte Roboto do Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Reset e configuração básica */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      padding: 20px;
+    }
+    /* Cabeçalho com a cor característica da Shopee */
+    header {
+      background-color: #ee4d2d;
+      color: #fff;
+      text-align: center;
+      padding: 20px 0;
+      font-size: 24px;
+      font-weight: 700;
+      border-radius: 4px;
+    }
+    /* Container centralizado */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    /* Estilização do formulário */
+    form {
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 500;
+      color: #555;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background-color: #ee4d2d;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #d44124;
+    }
+    /* Link para a tela de listagem */
+    .link-lista {
+      display: inline-block;
+      margin-top: 10px;
+      color: #ee4d2d;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .link-lista:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    Minha Coleção de Produtos - Cadastro
+  </header>
+
+  <div class="container">
+    <!-- Formulário de cadastro -->
+    <form id="produtoForm">
+      <label for="nome">Nome:</label>
+      <input type="text" id="nome" name="nome" required>
+
+      <label for="codigo">Código:</label>
+      <input type="text" id="codigo" name="codigo" required>
+
+      <label for="link">Link:</label>
+      <!-- Aqui usamos type="text" para aceitar http://, https://, file://, etc. -->
+      <input type="text" id="link" name="link" required>
+
+      <button type="submit">Cadastrar Produto</button>
+    </form>
+
+    <!-- Link para abrir a tela de listagem -->
+    <a class="link-lista" href="lista.html">Ir para a listagem de produtos</a>
+  </div>
+
+  <script>
+    // Array para armazenar os produtos
+    let produtos = [];
+
+    // Função para salvar os produtos no localStorage
+    function salvarProdutos() {
+      localStorage.setItem('produtos', JSON.stringify(produtos));
+    }
+
+    // Função para carregar os produtos do localStorage
+    function carregarProdutos() {
+      const produtosSalvos = localStorage.getItem('produtos');
+      if (produtosSalvos) {
+        produtos = JSON.parse(produtosSalvos);
+      }
+    }
+
+    // Evento de submissão do formulário
+    document.getElementById('produtoForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Impede o envio padrão do formulário
+
+      // Captura os valores dos campos
+      const nome = document.getElementById('nome').value;
+      const codigo = document.getElementById('codigo').value;
+      const link = document.getElementById('link').value;
+
+      // Cria o objeto do produto
+      const produto = { nome, codigo, link };
+
+      // Adiciona o produto ao array, salva e limpa o formulário
+      produtos.push(produto);
+      salvarProdutos();
+      this.reset();
+
+      alert('Produto cadastrado com sucesso!');
+    });
+
+    // Carrega os produtos ao abrir a página
+    window.addEventListener('load', carregarProdutos);
+  </script>
+</body>
+</html>
