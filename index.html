@@ -2,8 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Minha Coleção de Produtos - Supabase</title>
-
+  <title>Cadastro de Produtos</title>
   <!-- Fonte Roboto (opcional) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,13 +10,13 @@
     href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
     rel="stylesheet"
   />
-
   <style>
     body {
       font-family: 'Roboto', sans-serif;
       background-color: #f5f5f5;
       color: #333;
       padding: 20px;
+      margin: 0;
     }
     header {
       background-color: #ee4d2d;
@@ -27,10 +26,11 @@
       font-size: 24px;
       font-weight: 700;
       border-radius: 4px;
+      margin-bottom: 20px;
     }
     .container {
-      max-width: 800px;
-      margin: 20px auto;
+      max-width: 600px;
+      margin: 0 auto;
       background-color: #fff;
       padding: 30px;
       border-radius: 8px;
@@ -64,190 +64,89 @@
     button:hover {
       background-color: #d44124;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    th {
-      background-color: #f8f8f8;
-      font-weight: 500;
-    }
-    tr:hover {
-      background-color: #f1f1f1;
-    }
-    a {
+    .link-listagem {
+      display: inline-block;
+      margin-top: 15px;
       color: #ee4d2d;
       text-decoration: none;
       font-weight: 500;
     }
-    a:hover {
+    .link-listagem:hover {
       text-decoration: underline;
-    }
-    td a {
-      display: inline-block;
-      max-width: 100%;
-      overflow-wrap: break-word;
     }
   </style>
 </head>
-
 <body>
-  <header>Minha Coleção de Produtos</header>
+  <header>Cadastro de Produtos</header>
+
   <div class="container">
-    <!-- Formulário de cadastro -->
     <form id="produtoForm">
       <label for="nomeProduto">Nome do Produto:</label>
-      <input type="text" id="nomeProduto" name="nomeProduto" required />
+      <input type="text" id="nomeProduto" required />
 
-      <label for="codigo">Código (número):</label>
-      <input type="text" id="codigo" name="codigo" required />
+      <label for="codigo">Código (int):</label>
+      <input type="text" id="codigo" required />
 
       <label for="link">Link:</label>
-      <input type="text" id="link" name="link" required />
+      <input type="text" id="link" required />
 
       <button type="submit">Cadastrar Produto</button>
     </form>
 
-    <!-- Tabela para listagem dos produtos -->
-    <table id="produtosTable">
-      <thead>
-        <tr>
-          <th>Nome do Produto</th>
-          <th>Código</th>
-          <th>Link</th>
-          <th>Criado em</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Será preenchido via JavaScript -->
-      </tbody>
-    </table>
+    <!-- Link para a página de listagem -->
+    <a class="link-listagem" href="lista.html">Ir para a Lista de Produtos</a>
   </div>
 
-  <!-- Importar o SDK do Supabase (versão ESM) -->
+  <!-- SCRIPT PRINCIPAL -->
   <script type="module">
-    // 1) Importa a função para criar o cliente Supabase
+    // Importar o SDK do Supabase
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // 2) Cole aqui a URL do projeto e a chave anonpublic
-    //    (NÃO use service_role no front-end)
+    // URL e chave ANON que você informou
     const supabaseUrl = 'https://utaadvmqokgwydohdxob.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.XXXXXX-SEU-TOKEN-ANON-XXXXXX';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0YWFkdm1xb2tnd3lkb2hkeG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxMDkzNDMsImV4cCI6MjA1NDY4NTM0M30.0hOT14W2yIClVt_1PuXVs1f0vu3UpVfhri2aEOBhIlE';
+
+    // Cria o cliente Supabase
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    // 3) Use a tabela "mesa"
-    //    OBS: colunas: codigo, Nome do Produto, Link, criado_em
+    // Nome da tabela no banco
     const TABELA = 'mesa';
 
-    // Referências ao formulário e tabela
+    // Captura o formulário
     const produtoForm = document.getElementById('produtoForm');
-    const produtosTableBody = document.querySelector('#produtosTable tbody');
 
-    // Ao carregar a página, chama a listagem
-    window.addEventListener('load', () => {
-      listarProdutos();
-    });
-
-    // Listar todos os produtos do Supabase
-    async function listarProdutos() {
-      try {
-        const { data, error } = await supabase
-          .from(TABELA)
-          .select('*')
-          .order('codigo', { ascending: true }); 
-          // ou .order('criado_em', { ascending: false }) caso queira ordenar por data
-
-        if (error) {
-          throw error;
-        }
-
-        // Limpa a tabela
-        produtosTableBody.innerHTML = '';
-
-        // Para cada registro, cria uma linha
-        data.forEach((produto) => {
-          const tr = document.createElement('tr');
-
-          // Nome do Produto (coluna com espaço)
-          const tdNome = document.createElement('td');
-          tdNome.textContent = produto["Nome do Produto"] || '';
-          tr.appendChild(tdNome);
-
-          // Código
-          const tdCodigo = document.createElement('td');
-          tdCodigo.textContent = produto.codigo;
-          tr.appendChild(tdCodigo);
-
-          // Link (abrir em nova aba)
-          const tdLink = document.createElement('td');
-          const linkElement = document.createElement('a');
-          linkElement.href = produto.Link;
-          linkElement.textContent = produto.Link;
-          linkElement.target = '_blank';
-          tdLink.appendChild(linkElement);
-          tr.appendChild(tdLink);
-
-          // criado_em
-          const tdCriadoEm = document.createElement('td');
-          // Se vier null, evitamos erro
-          tdCriadoEm.textContent = produto.criado_em 
-            ? new Date(produto.criado_em).toLocaleString('pt-BR')
-            : '';
-          tr.appendChild(tdCriadoEm);
-
-          produtosTableBody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error('Erro ao listar produtos:', err.message);
-        alert('Não foi possível listar produtos. Veja o console para detalhes.');
-      }
-    }
-
-    // Cadastro de produto
+    // Evento de submit para cadastrar
     produtoForm.addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      // Pega valores do form
       const nomeProduto = document.getElementById('nomeProduto').value.trim();
       const codigoStr = document.getElementById('codigo').value.trim();
       const link = document.getElementById('link').value.trim();
 
-      // Converte código pra número (int)
+      // Converte codigoStr para número
       const codigo = parseInt(codigoStr, 10) || 0;
 
       try {
-        // Insere no Supabase
+        // Insere o registro na tabela "mesa"
         const { data, error } = await supabase
           .from(TABELA)
           .insert([
             {
-              // No Supabase, a coluna se chama "Nome do Produto" (com espaço)
-              "Nome do Produto": nomeProduto,
+              // Repare que a coluna tem espaço no nome
+              'Nome do Produto': nomeProduto,
               codigo: codigo,
               Link: link
-              // criado_em será setado automaticamente se configurou default now()
             }
           ]);
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
-        // Limpa form
-        produtoForm.reset();
         alert('Produto cadastrado com sucesso!');
-
-        // Atualiza a listagem
-        listarProdutos();
+        // Limpa o formulário
+        produtoForm.reset();
       } catch (err) {
         console.error('Erro ao cadastrar produto:', err.message);
-        alert('Não foi possível cadastrar. Veja o console para detalhes.');
+        alert('Não foi possível cadastrar. Verifique o console para detalhes.');
       }
     });
   </script>
