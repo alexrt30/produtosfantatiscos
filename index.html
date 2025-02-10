@@ -1,27 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Minha Coleção de Produtos - Listagem</title>
-  <!-- Importando a fonte Roboto do Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>Minha Coleção de Produtos - Supabase</title>
+
+  <!-- Fonte Roboto (opcional) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
 
   <style>
-    /* Reset e configuração básica */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
     body {
       font-family: 'Roboto', sans-serif;
       background-color: #f5f5f5;
       color: #333;
       padding: 20px;
     }
-    /* Cabeçalho com a cor característica da Shopee */
     header {
       background-color: #ee4d2d;
       color: #fff;
@@ -31,34 +28,42 @@
       font-weight: 700;
       border-radius: 4px;
     }
-    /* Container centralizado */
     .container {
-      max-width: 1200px;
+      max-width: 800px;
       margin: 20px auto;
       background-color: #fff;
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
-
-    /* Campo de busca */
-    .busca-container {
-      margin-bottom: 20px;
-    }
-    .busca-container label {
+    label {
+      display: block;
+      margin-top: 15px;
       font-weight: 500;
       color: #555;
-      margin-right: 10px;
     }
-    #search {
-      width: 300px;
+    input[type="text"] {
+      width: 100%;
       padding: 10px;
+      margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 16px;
     }
-
-    /* Estilização da tabela */
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background-color: #ee4d2d;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #d44124;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -84,121 +89,166 @@
     a:hover {
       text-decoration: underline;
     }
-    /* Evitar que links longos “estourem” o layout */
     td a {
       display: inline-block;
       max-width: 100%;
       overflow-wrap: break-word;
     }
-
-    /* Link para voltar para tela de cadastro */
-    .link-cadastro {
-      display: inline-block;
-      margin-top: 10px;
-      color: #ee4d2d;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .link-cadastro:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
+
 <body>
-  <header>
-    Minha Coleção de Produtos - Listagem
-  </header>
-
+  <header>Minha Coleção de Produtos</header>
   <div class="container">
+    <!-- Formulário de cadastro -->
+    <form id="produtoForm">
+      <label for="nomeProduto">Nome do Produto:</label>
+      <input type="text" id="nomeProduto" name="nomeProduto" required />
 
-    <!-- Campo de busca por Nome ou Código -->
-    <div class="busca-container">
-      <label for="search">Buscar por nome ou código:</label>
-      <input type="text" id="search" placeholder="Digite para filtrar..." />
-    </div>
+      <label for="codigo">Código (número):</label>
+      <input type="text" id="codigo" name="codigo" required />
+
+      <label for="link">Link:</label>
+      <input type="text" id="link" name="link" required />
+
+      <button type="submit">Cadastrar Produto</button>
+    </form>
 
     <!-- Tabela para listagem dos produtos -->
     <table id="produtosTable">
       <thead>
         <tr>
-          <th>Nome</th>
+          <th>Nome do Produto</th>
           <th>Código</th>
           <th>Link</th>
+          <th>Criado em</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Os produtos serão inseridos aqui via JavaScript -->
+        <!-- Será preenchido via JavaScript -->
       </tbody>
     </table>
-
-    <!-- Link para voltar ao cadastro -->
-    <a class="link-cadastro" href="index.html">Voltar para o cadastro</a>
   </div>
 
-  <script>
-    let produtos = [];
+  <!-- Importar o SDK do Supabase (versão ESM) -->
+  <script type="module">
+    // 1) Importa a função para criar o cliente Supabase
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // Carrega os produtos salvos no localStorage
-    function carregarProdutos() {
-      const produtosSalvos = localStorage.getItem('produtos');
-      if (produtosSalvos) {
-        produtos = JSON.parse(produtosSalvos);
+    // 2) Cole aqui a URL do projeto e a chave anonpublic
+    //    (NÃO use service_role no front-end)
+    const supabaseUrl = 'https://utaadvmqokgwydohdxob.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.XXXXXX-SEU-TOKEN-ANON-XXXXXX';
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // 3) Use a tabela "mesa"
+    //    OBS: colunas: codigo, Nome do Produto, Link, criado_em
+    const TABELA = 'mesa';
+
+    // Referências ao formulário e tabela
+    const produtoForm = document.getElementById('produtoForm');
+    const produtosTableBody = document.querySelector('#produtosTable tbody');
+
+    // Ao carregar a página, chama a listagem
+    window.addEventListener('load', () => {
+      listarProdutos();
+    });
+
+    // Listar todos os produtos do Supabase
+    async function listarProdutos() {
+      try {
+        const { data, error } = await supabase
+          .from(TABELA)
+          .select('*')
+          .order('codigo', { ascending: true }); 
+          // ou .order('criado_em', { ascending: false }) caso queira ordenar por data
+
+        if (error) {
+          throw error;
+        }
+
+        // Limpa a tabela
+        produtosTableBody.innerHTML = '';
+
+        // Para cada registro, cria uma linha
+        data.forEach((produto) => {
+          const tr = document.createElement('tr');
+
+          // Nome do Produto (coluna com espaço)
+          const tdNome = document.createElement('td');
+          tdNome.textContent = produto["Nome do Produto"] || '';
+          tr.appendChild(tdNome);
+
+          // Código
+          const tdCodigo = document.createElement('td');
+          tdCodigo.textContent = produto.codigo;
+          tr.appendChild(tdCodigo);
+
+          // Link (abrir em nova aba)
+          const tdLink = document.createElement('td');
+          const linkElement = document.createElement('a');
+          linkElement.href = produto.Link;
+          linkElement.textContent = produto.Link;
+          linkElement.target = '_blank';
+          tdLink.appendChild(linkElement);
+          tr.appendChild(tdLink);
+
+          // criado_em
+          const tdCriadoEm = document.createElement('td');
+          // Se vier null, evitamos erro
+          tdCriadoEm.textContent = produto.criado_em 
+            ? new Date(produto.criado_em).toLocaleString('pt-BR')
+            : '';
+          tr.appendChild(tdCriadoEm);
+
+          produtosTableBody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Erro ao listar produtos:', err.message);
+        alert('Não foi possível listar produtos. Veja o console para detalhes.');
       }
     }
 
-    // Renderiza produtos na tabela (recebe um array de produtos)
-    function renderProdutos(lista) {
-      const tbody = document.querySelector('#produtosTable tbody');
-      tbody.innerHTML = '';
+    // Cadastro de produto
+    produtoForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
 
-      lista.forEach((produto) => {
-        const tr = document.createElement('tr');
+      // Pega valores do form
+      const nomeProduto = document.getElementById('nomeProduto').value.trim();
+      const codigoStr = document.getElementById('codigo').value.trim();
+      const link = document.getElementById('link').value.trim();
 
-        // Nome
-        const tdNome = document.createElement('td');
-        tdNome.textContent = produto.nome;
-        tr.appendChild(tdNome);
+      // Converte código pra número (int)
+      const codigo = parseInt(codigoStr, 10) || 0;
 
-        // Código
-        const tdCodigo = document.createElement('td');
-        tdCodigo.textContent = produto.codigo;
-        tr.appendChild(tdCodigo);
+      try {
+        // Insere no Supabase
+        const { data, error } = await supabase
+          .from(TABELA)
+          .insert([
+            {
+              // No Supabase, a coluna se chama "Nome do Produto" (com espaço)
+              "Nome do Produto": nomeProduto,
+              codigo: codigo,
+              Link: link
+              // criado_em será setado automaticamente se configurou default now()
+            }
+          ]);
 
-        // Link
-        const tdLink = document.createElement('td');
-        const linkElement = document.createElement('a');
-        linkElement.href = produto.link;
-        linkElement.textContent = produto.link;
-        linkElement.target = '_blank';
-        tdLink.appendChild(linkElement);
-        tr.appendChild(tdLink);
+        if (error) {
+          throw error;
+        }
 
-        tbody.appendChild(tr);
-      });
-    }
+        // Limpa form
+        produtoForm.reset();
+        alert('Produto cadastrado com sucesso!');
 
-    // Filtra os produtos pelo campo de busca
-    function filtrarProdutos() {
-      const texto = document.getElementById('search').value.toLowerCase();
-
-      // Filtra pelo nome OU código, convertendo tudo para lowerCase
-      const produtosFiltrados = produtos.filter((p) => {
-        return (
-          p.nome.toLowerCase().includes(texto) ||
-          p.codigo.toLowerCase().includes(texto)
-        );
-      });
-
-      renderProdutos(produtosFiltrados);
-    }
-
-    // Ao carregar a página, pega produtos do localStorage e renderiza
-    window.addEventListener('load', () => {
-      carregarProdutos();
-      renderProdutos(produtos);
-
-      // Quando digitar no campo de busca, filtra em tempo real
-      document.getElementById('search').addEventListener('input', filtrarProdutos);
+        // Atualiza a listagem
+        listarProdutos();
+      } catch (err) {
+        console.error('Erro ao cadastrar produto:', err.message);
+        alert('Não foi possível cadastrar. Veja o console para detalhes.');
+      }
     });
   </script>
 </body>
