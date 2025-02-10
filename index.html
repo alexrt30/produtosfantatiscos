@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Minha Coleção de Produtos - Cadastro</title>
+  <title>Minha Coleção de Produtos - Listagem</title>
   <!-- Importando a fonte Roboto do Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,86 +40,105 @@
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
-    /* Estilização do formulário */
-    form {
-      margin-bottom: 30px;
+
+    /* Campo de busca */
+    .busca-container {
+      margin-bottom: 20px;
     }
-    label {
-      display: block;
-      margin-top: 15px;
+    .busca-container label {
       font-weight: 500;
       color: #555;
+      margin-right: 10px;
     }
-    input[type="text"] {
-      width: 100%;
+    #search {
+      width: 300px;
       padding: 10px;
-      margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 16px;
     }
-    button {
+
+    /* Estilização da tabela */
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 20px;
-      padding: 12px 20px;
-      background-color: #ee4d2d;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
     }
-    button:hover {
-      background-color: #d44124;
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
     }
-    /* Link para a tela de listagem */
-    .link-lista {
+    th {
+      background-color: #f8f8f8;
+      font-weight: 500;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    a {
+      color: #ee4d2d;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    /* Evitar que links longos “estourem” o layout */
+    td a {
+      display: inline-block;
+      max-width: 100%;
+      overflow-wrap: break-word;
+    }
+
+    /* Link para voltar para tela de cadastro */
+    .link-cadastro {
       display: inline-block;
       margin-top: 10px;
       color: #ee4d2d;
       text-decoration: none;
       font-weight: 500;
     }
-    .link-lista:hover {
+    .link-cadastro:hover {
       text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <header>
-    Minha Coleção de Produtos - Cadastro
+    Minha Coleção de Produtos - Listagem
   </header>
 
   <div class="container">
-    <!-- Formulário de cadastro -->
-    <form id="produtoForm">
-      <label for="nome">Nome:</label>
-      <input type="text" id="nome" name="nome" required>
 
-      <label for="codigo">Código:</label>
-      <input type="text" id="codigo" name="codigo" required>
+    <!-- Campo de busca por Nome ou Código -->
+    <div class="busca-container">
+      <label for="search">Buscar por nome ou código:</label>
+      <input type="text" id="search" placeholder="Digite para filtrar..." />
+    </div>
 
-      <label for="link">Link:</label>
-      <!-- Aqui usamos type="text" para aceitar http://, https://, file://, etc. -->
-      <input type="text" id="link" name="link" required>
+    <!-- Tabela para listagem dos produtos -->
+    <table id="produtosTable">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Código</th>
+          <th>Link</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Os produtos serão inseridos aqui via JavaScript -->
+      </tbody>
+    </table>
 
-      <button type="submit">Cadastrar Produto</button>
-    </form>
-
-    <!-- Link para abrir a tela de listagem -->
-    <a class="link-lista" href="lista.html">Ir para a listagem de produtos</a>
+    <!-- Link para voltar ao cadastro -->
+    <a class="link-cadastro" href="index.html">Voltar para o cadastro</a>
   </div>
 
   <script>
-    // Array para armazenar os produtos
     let produtos = [];
 
-    // Função para salvar os produtos no localStorage
-    function salvarProdutos() {
-      localStorage.setItem('produtos', JSON.stringify(produtos));
-    }
-
-    // Função para carregar os produtos do localStorage
+    // Carrega os produtos salvos no localStorage
     function carregarProdutos() {
       const produtosSalvos = localStorage.getItem('produtos');
       if (produtosSalvos) {
@@ -127,28 +146,60 @@
       }
     }
 
-    // Evento de submissão do formulário
-    document.getElementById('produtoForm').addEventListener('submit', function(event) {
-      event.preventDefault(); // Impede o envio padrão do formulário
+    // Renderiza produtos na tabela (recebe um array de produtos)
+    function renderProdutos(lista) {
+      const tbody = document.querySelector('#produtosTable tbody');
+      tbody.innerHTML = '';
 
-      // Captura os valores dos campos
-      const nome = document.getElementById('nome').value;
-      const codigo = document.getElementById('codigo').value;
-      const link = document.getElementById('link').value;
+      lista.forEach((produto) => {
+        const tr = document.createElement('tr');
 
-      // Cria o objeto do produto
-      const produto = { nome, codigo, link };
+        // Nome
+        const tdNome = document.createElement('td');
+        tdNome.textContent = produto.nome;
+        tr.appendChild(tdNome);
 
-      // Adiciona o produto ao array, salva e limpa o formulário
-      produtos.push(produto);
-      salvarProdutos();
-      this.reset();
+        // Código
+        const tdCodigo = document.createElement('td');
+        tdCodigo.textContent = produto.codigo;
+        tr.appendChild(tdCodigo);
 
-      alert('Produto cadastrado com sucesso!');
+        // Link
+        const tdLink = document.createElement('td');
+        const linkElement = document.createElement('a');
+        linkElement.href = produto.link;
+        linkElement.textContent = produto.link;
+        linkElement.target = '_blank';
+        tdLink.appendChild(linkElement);
+        tr.appendChild(tdLink);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Filtra os produtos pelo campo de busca
+    function filtrarProdutos() {
+      const texto = document.getElementById('search').value.toLowerCase();
+
+      // Filtra pelo nome OU código, convertendo tudo para lowerCase
+      const produtosFiltrados = produtos.filter((p) => {
+        return (
+          p.nome.toLowerCase().includes(texto) ||
+          p.codigo.toLowerCase().includes(texto)
+        );
+      });
+
+      renderProdutos(produtosFiltrados);
+    }
+
+    // Ao carregar a página, pega produtos do localStorage e renderiza
+    window.addEventListener('load', () => {
+      carregarProdutos();
+      renderProdutos(produtos);
+
+      // Quando digitar no campo de busca, filtra em tempo real
+      document.getElementById('search').addEventListener('input', filtrarProdutos);
     });
-
-    // Carrega os produtos ao abrir a página
-    window.addEventListener('load', carregarProdutos);
   </script>
 </body>
 </html>
