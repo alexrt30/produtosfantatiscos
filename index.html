@@ -110,7 +110,7 @@
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // Nome da tabela no banco
-    const TABELA = 'mesa';
+    const TABELA = 'Produtos';
 
     // Captura o formulário
     const produtoForm = document.getElementById('produtoForm');
@@ -127,7 +127,7 @@
       const codigo = parseInt(codigoStr, 10) || 0;
 
       try {
-        // Insere o registro na tabela "mesa"
+        // Insere o registro na tabela "Produtos"
         const { data, error } = await supabase
           .from(TABELA)
           .insert([
