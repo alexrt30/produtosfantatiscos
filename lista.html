@@ -109,7 +109,7 @@
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    const TABELA = 'mesa';
+    const TABELA = 'Produtos';
     const produtosTableBody = document.querySelector('#produtosTable tbody');
 
     // Ao carregar a página, lista produtos
@@ -117,7 +117,7 @@
 
     async function listarProdutos() {
       try {
-        // Busca todos os registros da tabela "mesa"
+        // Busca todos os registros da tabela "Produtos"
         const { data, error } = await supabase
           .from(TABELA)
           .select('*')
