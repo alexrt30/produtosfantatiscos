@@ -1,95 +1,81 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lista de Produtos</title>
-  <!-- Fonte Roboto (opcional) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
-    rel="stylesheet"
-  />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
       font-family: 'Roboto', sans-serif;
       background-color: #f5f5f5;
       color: #333;
       padding: 20px;
-      margin: 0;
     }
     header {
       background-color: #ee4d2d;
       color: #fff;
       text-align: center;
-      padding: 20px 0;
+      padding: 15px;
       font-size: 24px;
       font-weight: 700;
-      border-radius: 4px;
+      border-radius: 8px;
       margin-bottom: 20px;
     }
     .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background-color: #fff;
-      padding: 30px;
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 25px;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
-    .link-cadastro {
-      display: inline-block;
+    .search-box {
       margin-bottom: 15px;
-      color: #ee4d2d;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .link-cadastro:hover {
-      text-decoration: underline;
+      padding: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
+      border-radius: 8px;
+      overflow: hidden;
     }
     th, td {
-      padding: 12px 15px;
+      padding: 14px;
       text-align: left;
       border-bottom: 1px solid #ddd;
     }
     th {
       background-color: #f8f8f8;
-      font-weight: 500;
+      font-weight: 700;
     }
     tr:hover {
-      background-color: #f1f1f1;
-    }
-    a {
-      color: #ee4d2d;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    td a {
-      display: inline-block;
-      max-width: 100%;
-      overflow-wrap: break-word;
+      background-color: #f9f9f9;
     }
   </style>
 </head>
 <body>
   <header>Lista de Produtos</header>
   <div class="container">
-    <a class="link-cadastro" href="index.html">Voltar ao Cadastro</a>
-
+    <input type="text" id="searchInput" class="search-box" placeholder="Buscar por Nome ou Código">
     <table id="produtosTable">
       <thead>
         <tr>
           <th>Nome do Produto</th>
           <th>Código</th>
           <th>Link</th>
-          <th>Criado em</th>
         </tr>
       </thead>
       <tbody>
@@ -98,73 +84,52 @@
     </table>
   </div>
 
-  <!-- SCRIPT PRINCIPAL -->
   <script type="module">
-    // Importar o SDK do Supabase
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // URL e chave ANON
     const supabaseUrl = 'https://utaadvmqokgwydohdxob.supabase.co';
     const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0YWFkdm1xb2tnd3lkb2hkeG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxMDkzNDMsImV4cCI6MjA1NDY4NTM0M30.0hOT14W2yIClVt_1PuXVs1f0vu3UpVfhri2aEOBhIlE';
-
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    const TABELA = 'Produtos';
     const produtosTableBody = document.querySelector('#produtosTable tbody');
+    const searchInput = document.querySelector('#searchInput');
 
-    // Ao carregar a página, lista produtos
     window.addEventListener('load', listarProdutos);
+    searchInput.addEventListener('input', filtrarProdutos);
 
     async function listarProdutos() {
       try {
-        // Busca todos os registros da tabela "Produtos"
         const { data, error } = await supabase
-          .from(TABELA)
+          .from('Produtos')
           .select('*')
-          // Ordenar por "codigo" (ou "criado_em")
           .order('codigo', { ascending: true });
 
         if (error) throw error;
 
         produtosTableBody.innerHTML = '';
-
-        data.forEach((produto) => {
-          const tr = document.createElement('tr');
-
-          // Nome do Produto (coluna com espaço)
-          const tdNome = document.createElement('td');
-          tdNome.textContent = produto['Nome do Produto'] || '';
-          tr.appendChild(tdNome);
-
-          // Código
-          const tdCodigo = document.createElement('td');
-          tdCodigo.textContent = produto.codigo;
-          tr.appendChild(tdCodigo);
-
-          // Link (abre em nova aba)
-          const tdLink = document.createElement('td');
-          const linkElement = document.createElement('a');
-          linkElement.href = produto.Link;
-          linkElement.textContent = produto.Link;
-          linkElement.target = '_blank';
-          tdLink.appendChild(linkElement);
-          tr.appendChild(tdLink);
-
-          // criado_em (formatado)
-          const tdCriado = document.createElement('td');
-          if (produto.criado_em) {
-            tdCriado.textContent = new Date(produto.criado_em).toLocaleString('pt-BR');
-          } else {
-            tdCriado.textContent = '';
-          }
-          tr.appendChild(tdCriado);
-
-          produtosTableBody.appendChild(tr);
-        });
+        data.forEach(produto => adicionarProdutoNaTabela(produto));
       } catch (err) {
         console.error('Erro ao listar produtos:', err.message);
         alert('Não foi possível listar produtos. Verifique o console para detalhes.');
       }
+    }
+
+    function adicionarProdutoNaTabela(produto) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${produto['Nome do Produto'] || '-'}</td>
+        <td>${produto.codigo}</td>
+        <td><a href="${produto.Link}" target="_blank">${produto.Link}</a></td>
+      `;
+      produtosTableBody.appendChild(tr);
+    }
+
+    function filtrarProdutos() {
+      const termo = searchInput.value.toLowerCase();
+      Array.from(produtosTableBody.children).forEach(tr => {
+        const nome = tr.children[0].textContent.toLowerCase();
+        const codigo = tr.children[1].textContent.toLowerCase();
+        tr.style.display = nome.includes(termo) || codigo.includes(termo) ? '' : 'none';
+      });
     }
   </script>
 </body>
