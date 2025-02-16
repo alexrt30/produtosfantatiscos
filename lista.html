@@ -17,45 +17,45 @@
       font-family: 'Roboto', sans-serif;
       background-color: #f5f5f5;
       color: #333;
-      padding: 20px;
+      padding: 10px;
     }
     header {
       background-color: #ee4d2d;
       color: #fff;
       text-align: center;
-      padding: 15px;
-      font-size: 24px;
+      padding: 12px;
+      font-size: 20px;
       font-weight: 700;
       border-radius: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
     .container {
-      max-width: 900px;
-      margin: auto;
+      max-width: 100%;
       background: #fff;
-      padding: 25px;
+      padding: 15px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      overflow-x: auto;
     }
     .search-box {
-      margin-bottom: 15px;
-      padding: 10px;
       width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      padding: 12px;
       font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      margin-bottom: 10px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
-      border-radius: 8px;
-      overflow: hidden;
+      min-width: 350px;
     }
     th, td {
-      padding: 14px;
+      padding: 10px;
       text-align: left;
       border-bottom: 1px solid #ddd;
+      font-size: 14px;
     }
     th {
       background-color: #f8f8f8;
@@ -63,6 +63,35 @@
     }
     tr:hover {
       background-color: #f9f9f9;
+    }
+    td a {
+      text-decoration: none;
+      color: #007bff;
+      word-break: break-word;
+      display: block;
+      text-align: center;
+    }
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    .pagination button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      background-color: #ee4d2d;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .pagination button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .pagination button:hover:not(:disabled) {
+      background-color: #d44124;
     }
   </style>
 </head>
@@ -73,7 +102,7 @@
     <table id="produtosTable">
       <thead>
         <tr>
-          <th>Nome do Produto</th>
+          <th>Nome</th>
           <th>Código</th>
           <th>Link</th>
         </tr>
@@ -82,6 +111,12 @@
         <!-- Preenchido via JS -->
       </tbody>
     </table>
+    
+    <!-- Botões de Paginação -->
+    <div class="pagination">
+      <button id="prevPage" disabled>Anterior</button>
+      <button id="nextPage" disabled>Próximo</button>
+    </div>
   </div>
 
   <script type="module">
@@ -90,11 +125,18 @@
     const supabaseUrl = 'https://utaadvmqokgwydohdxob.supabase.co';
     const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0YWFkdm1xb2tnd3lkb2hkeG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxMDkzNDMsImV4cCI6MjA1NDY4NTM0M30.0hOT14W2yIClVt_1PuXVs1f0vu3UpVfhri2aEOBhIlE';
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
     const produtosTableBody = document.querySelector('#produtosTable tbody');
     const searchInput = document.querySelector('#searchInput');
+    const prevPageBtn = document.querySelector('#prevPage');
+    const nextPageBtn = document.querySelector('#nextPage');
+
+    let produtos = [];
+    let paginaAtual = 1;
+    const itensPorPagina = 100;
 
     window.addEventListener('load', listarProdutos);
-    searchInput.addEventListener('input', filtrarProdutos);
+    searchInput.addEventListener('input', atualizarExibicao);
 
     async function listarProdutos() {
       try {
@@ -105,32 +147,65 @@
 
         if (error) throw error;
 
-        produtosTableBody.innerHTML = '';
-        data.forEach(produto => adicionarProdutoNaTabela(produto));
+        produtos = data;
+        atualizarExibicao();
       } catch (err) {
         console.error('Erro ao listar produtos:', err.message);
-        alert('Não foi possível listar produtos. Verifique o console para detalhes.');
+        alert('Não foi possível listar produtos.');
       }
     }
 
-    function adicionarProdutoNaTabela(produto) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${produto['Nome do Produto'] || '-'}</td>
-        <td>${produto.codigo}</td>
-        <td><a href="${produto.Link}" target="_blank">${produto.Link}</a></td>
-      `;
-      produtosTableBody.appendChild(tr);
+    function atualizarExibicao() {
+      const termo = searchInput.value.toLowerCase();
+      const produtosFiltrados = produtos.filter(produto =>
+        produto['Nome do Produto'].toLowerCase().includes(termo) ||
+        produto.codigo.toString().includes(termo)
+      );
+
+      const totalPaginas = Math.ceil(produtosFiltrados.length / itensPorPagina);
+      paginaAtual = Math.min(paginaAtual, totalPaginas) || 1;
+
+      produtosTableBody.innerHTML = '';
+
+      const inicio = (paginaAtual - 1) * itensPorPagina;
+      const fim = inicio + itensPorPagina;
+      const produtosPagina = produtosFiltrados.slice(inicio, fim);
+
+      produtosPagina.forEach(produto => {
+        const nome = produto['Nome do Produto'] || produto.nome || '-';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${nome}</td>
+          <td>${produto.codigo}</td>
+          <td><a href="${produto.Link}" target="_blank">🔗 Acessar</a></td>
+        `;
+        produtosTableBody.appendChild(tr);
+      });
+
+      prevPageBtn.disabled = paginaAtual === 1;
+      nextPageBtn.disabled = paginaAtual >= totalPaginas;
     }
 
-    function filtrarProdutos() {
+    prevPageBtn.addEventListener('click', () => {
+      if (paginaAtual > 1) {
+        paginaAtual--;
+        atualizarExibicao();
+      }
+    });
+
+    nextPageBtn.addEventListener('click', () => {
       const termo = searchInput.value.toLowerCase();
-      Array.from(produtosTableBody.children).forEach(tr => {
-        const nome = tr.children[0].textContent.toLowerCase();
-        const codigo = tr.children[1].textContent.toLowerCase();
-        tr.style.display = nome.includes(termo) || codigo.includes(termo) ? '' : 'none';
-      });
-    }
+      const produtosFiltrados = produtos.filter(produto =>
+        produto['Nome do Produto'].toLowerCase().includes(termo) ||
+        produto.codigo.toString().includes(termo)
+      );
+
+      const totalPaginas = Math.ceil(produtosFiltrados.length / itensPorPagina);
+      if (paginaAtual < totalPaginas) {
+        paginaAtual++;
+        atualizarExibicao();
+      }
+    });
   </script>
 </body>
 </html>
