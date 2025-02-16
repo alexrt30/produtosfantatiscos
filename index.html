@@ -2,70 +2,73 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cadastro de Produtos</title>
-  <!-- Fonte Roboto (opcional) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
       font-family: 'Roboto', sans-serif;
       background-color: #f5f5f5;
       color: #333;
-      padding: 20px;
-      margin: 0;
+      padding: 10px;
     }
     header {
       background-color: #ee4d2d;
       color: #fff;
       text-align: center;
-      padding: 20px 0;
-      font-size: 24px;
+      padding: 15px;
+      font-size: 20px;
       font-weight: 700;
-      border-radius: 4px;
-      margin-bottom: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
     }
     .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background-color: #fff;
-      padding: 30px;
+      max-width: 100%;
+      background: #fff;
+      padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     label {
       display: block;
-      margin-top: 15px;
+      margin-top: 10px;
       font-weight: 500;
       color: #555;
     }
     input[type="text"] {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin-top: 5px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 16px;
+      outline: none;
     }
     button {
-      margin-top: 20px;
-      padding: 12px 20px;
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
       background-color: #ee4d2d;
       color: #fff;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 16px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: 0.3s ease;
     }
     button:hover {
       background-color: #d44124;
     }
     .link-listagem {
-      display: inline-block;
+      display: block;
+      text-align: center;
       margin-top: 15px;
       color: #ee4d2d;
       text-decoration: none;
@@ -82,7 +85,7 @@
   <div class="container">
     <form id="produtoForm">
       <label for="nomeProduto">Nome do Produto:</label>
-      <input type="text" id="nomeProduto" required />
+      <input type="text" id="nomeProduto" required autofocus />
 
       <label for="codigo">Código (int):</label>
       <input type="text" id="codigo" required />
@@ -93,29 +96,18 @@
       <button type="submit">Cadastrar Produto</button>
     </form>
 
-    <!-- Link para a página de listagem -->
     <a class="link-listagem" href="lista.html">Ir para a Lista de Produtos</a>
   </div>
 
-  <!-- SCRIPT PRINCIPAL -->
   <script type="module">
-    // Importar o SDK do Supabase
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // URL e chave ANON que você informou
     const supabaseUrl = 'https://utaadvmqokgwydohdxob.supabase.co';
     const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0YWFkdm1xb2tnd3lkb2hkeG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxMDkzNDMsImV4cCI6MjA1NDY4NTM0M30.0hOT14W2yIClVt_1PuXVs1f0vu3UpVfhri2aEOBhIlE';
 
-    // Cria o cliente Supabase
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    // Nome da tabela no banco
-    const TABELA = 'Produtos';
-
-    // Captura o formulário
     const produtoForm = document.getElementById('produtoForm');
 
-    // Evento de submit para cadastrar
     produtoForm.addEventListener('submit', async (event) => {
       event.preventDefault();
 
@@ -123,30 +115,21 @@
       const codigoStr = document.getElementById('codigo').value.trim();
       const link = document.getElementById('link').value.trim();
 
-      // Converte codigoStr para número
-      const codigo = parseInt(codigoStr, 10) || 0;
+      // Converte código para número (evita erro de string vazia)
+      const codigo = isNaN(parseInt(codigoStr, 10)) ? 0 : parseInt(codigoStr, 10);
 
       try {
-        // Insere o registro na tabela "Produtos"
         const { data, error } = await supabase
-          .from(TABELA)
-          .insert([
-            {
-              // Repare que a coluna tem espaço no nome
-              'Nome do Produto': nomeProduto,
-              codigo: codigo,
-              Link: link
-            }
-          ]);
+          .from('Produtos')
+          .insert([{ 'Nome do Produto': nomeProduto, codigo, Link: link }]);
 
         if (error) throw error;
 
         alert('Produto cadastrado com sucesso!');
-        // Limpa o formulário
         produtoForm.reset();
       } catch (err) {
         console.error('Erro ao cadastrar produto:', err.message);
-        alert('Não foi possível cadastrar. Verifique o console para detalhes.');
+        alert('Erro ao cadastrar. Verifique o console para mais detalhes.');
       }
     });
   </script>
