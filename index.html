@@ -8,11 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Roboto', sans-serif;
       background-color: #f5f5f5;
@@ -59,35 +55,13 @@
       background-color: #f8f8f8;
       font-weight: 700;
     }
-    .product-list tr:hover {
-      background-color: #f9f9f9;
-    }
+    .product-list tr:hover { background-color: #f9f9f9; }
     .product-list td a {
       text-decoration: none;
       color: #007bff;
       display: flex;
       align-items: center;
       gap: 5px;
-    }
-    .pagination {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 15px;
-    }
-    .pagination button {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 6px;
-      background-color: #ee4d2d;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .pagination button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
     }
   </style>
 </head>
@@ -103,14 +77,8 @@
           <th>Link</th>
         </tr>
       </thead>
-      <tbody>
-        <!-- Preenchido via JS -->
-      </tbody>
+      <tbody></tbody>
     </table>
-    <div class="pagination">
-      <button id="prevPage" disabled>Anterior</button>
-      <button id="nextPage" disabled>Próximo</button>
-    </div>
   </div>
 
   <script type="module">
@@ -122,19 +90,15 @@
     
     const productListBody = document.querySelector('#productList tbody');
     const searchInput = document.querySelector('#searchInput');
-    const prevPageBtn = document.querySelector('#prevPage');
-    const nextPageBtn = document.querySelector('#nextPage');
 
     let produtos = [];
-    let paginaAtual = 1;
-    const itensPorPagina = 50;
 
     async function listarProdutos() {
       try {
         const { data, error } = await supabase
           .from('Produtos')
           .select('*')
-          .order('codigo', { ascending: true });
+          .order('codigo', { ascending: false });
 
         if (error) throw error;
 
@@ -154,7 +118,7 @@
       );
 
       productListBody.innerHTML = '';
-      produtosFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina).forEach(produto => {
+      produtosFiltrados.forEach(produto => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${produto['Nome do Produto'] || '-'}</td>
@@ -165,20 +129,7 @@
       });
     }
 
-    searchInput.addEventListener('input', () => {
-      atualizarExibicao();
-    });
-    
-    prevPageBtn.addEventListener('click', () => {
-      paginaAtual--;
-      atualizarExibicao();
-    });
-    
-    nextPageBtn.addEventListener('click', () => {
-      paginaAtual++;
-      atualizarExibicao();
-    });
-    
+    searchInput.addEventListener('input', atualizarExibicao);
     window.addEventListener('load', listarProdutos);
   </script>
 </body>
