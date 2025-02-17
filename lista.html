@@ -117,7 +117,7 @@
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     
     const supabaseUrl = 'https://utaadvmqokgwydohdxob.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0YWFkdm1xb2tnd3lkb2hkeG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxMDkzNDMsImV4cCI6MjA1NDY4NTM0M30.0hOT14W2yIClVt_1PuXVs1f0vu3UpVfhri2aEOBhIlE';
+    const supabaseAnonKey = 'SUA_CHAVE_AQUI';
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     
     const productListBody = document.querySelector('#productList tbody');
@@ -147,8 +147,14 @@
     }
 
     function atualizarExibicao() {
+      const termo = searchInput.value.toLowerCase();
+      const produtosFiltrados = produtos.filter(produto =>
+        produto['Nome do Produto'].toLowerCase().includes(termo) ||
+        produto.codigo.toString().includes(termo)
+      );
+
       productListBody.innerHTML = '';
-      produtos.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina).forEach(produto => {
+      produtosFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina).forEach(produto => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${produto['Nome do Produto'] || '-'}</td>
@@ -159,6 +165,10 @@
       });
     }
 
+    searchInput.addEventListener('input', () => {
+      atualizarExibicao();
+    });
+    
     prevPageBtn.addEventListener('click', () => {
       paginaAtual--;
       atualizarExibicao();
