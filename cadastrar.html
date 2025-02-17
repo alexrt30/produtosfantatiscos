@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista de Produtos</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <title>Cadastro de Produtos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     * {
       box-sizing: border-box;
@@ -23,7 +23,7 @@
       background-color: #ee4d2d;
       color: #fff;
       text-align: center;
-      padding: 12px;
+      padding: 15px;
       font-size: 20px;
       font-weight: 700;
       border-radius: 8px;
@@ -32,154 +32,106 @@
     .container {
       max-width: 100%;
       background: #fff;
-      padding: 15px;
+      padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
-    .search-box {
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 500;
+      color: #555;
+    }
+    input[type="text"] {
       width: 100%;
       padding: 12px;
-      font-size: 16px;
+      margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 6px;
+      font-size: 16px;
       outline: none;
-      margin-bottom: 10px;
     }
-    .product-list {
+    button {
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    .product-list th, .product-list td {
-      padding: 10px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    .product-list th {
-      background-color: #f8f8f8;
-      font-weight: 700;
-    }
-    .product-list tr:hover {
-      background-color: #f9f9f9;
-    }
-    .product-list td a {
-      text-decoration: none;
-      color: #007bff;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .pagination {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
       margin-top: 15px;
-    }
-    .pagination button {
-      padding: 10px 15px;
+      padding: 12px;
+      background-color: #ee4d2d;
+      color: #fff;
       border: none;
       border-radius: 6px;
-      background-color: #ee4d2d;
-      color: white;
-      font-size: 14px;
+      font-size: 16px;
       cursor: pointer;
-      transition: 0.3s;
+      transition: 0.3s ease;
     }
-    .pagination button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
+    button:hover {
+      background-color: #d44124;
+    }
+    .link-listagem {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: #ee4d2d;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .link-listagem:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <header>Lista de Produtos</header>
+  <header>Cadastro de Produtos</header>
+
   <div class="container">
-    <input type="text" id="searchInput" class="search-box" placeholder="Buscar por Nome ou Código">
-    <table class="product-list" id="productList">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Código</th>
-          <th>Link</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Preenchido via JS -->
-      </tbody>
-    </table>
-    <div class="pagination">
-      <button id="prevPage" disabled>Anterior</button>
-      <button id="nextPage" disabled>Próximo</button>
-    </div>
+    <form id="produtoForm">
+      <label for="nomeProduto">Nome do Produto:</label>
+      <input type="text" id="nomeProduto" required autofocus />
+
+      <label for="codigo">Código (int):</label>
+      <input type="text" id="codigo" required />
+
+      <label for="link">Link:</label>
+      <input type="text" id="link" required />
+
+      <button type="submit">Cadastrar Produto</button>
+    </form>
+
+    <a class="link-listagem" href="lista.html">Ir para a Lista de Produtos</a>
   </div>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    
+
     const supabaseUrl = 'https://utaadvmqokgwydohdxob.supabase.co';
     const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0YWFkdm1xb2tnd3lkb2hkeG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxMDkzNDMsImV4cCI6MjA1NDY4NTM0M30.0hOT14W2yIClVt_1PuXVs1f0vu3UpVfhri2aEOBhIlE';
+
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    
-    const productListBody = document.querySelector('#productList tbody');
-    const searchInput = document.querySelector('#searchInput');
-    const prevPageBtn = document.querySelector('#prevPage');
-    const nextPageBtn = document.querySelector('#nextPage');
+    const produtoForm = document.getElementById('produtoForm');
 
-    let produtos = [];
-    let paginaAtual = 1;
-    const itensPorPagina = 50;
+    produtoForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
 
-    async function listarProdutos() {
+      const nomeProduto = document.getElementById('nomeProduto').value.trim();
+      const codigoStr = document.getElementById('codigo').value.trim();
+      const link = document.getElementById('link').value.trim();
+
+      // Converte código para número (evita erro de string vazia)
+      const codigo = isNaN(parseInt(codigoStr, 10)) ? 0 : parseInt(codigoStr, 10);
+
       try {
         const { data, error } = await supabase
           .from('Produtos')
-          .select('*')
-          .order('codigo', { ascending: true });
+          .insert([{ 'Nome do Produto': nomeProduto, codigo, Link: link }]);
 
         if (error) throw error;
 
-        produtos = data;
-        atualizarExibicao();
+        alert('Produto cadastrado com sucesso!');
+        produtoForm.reset();
       } catch (err) {
-        console.error('Erro ao listar produtos:', err.message);
-        alert('Não foi possível listar produtos.');
+        console.error('Erro ao cadastrar produto:', err.message);
+        alert('Erro ao cadastrar. Verifique o console para mais detalhes.');
       }
-    }
-
-    function atualizarExibicao() {
-      const termo = searchInput.value.toLowerCase();
-      const produtosFiltrados = produtos.filter(produto =>
-        produto['Nome do Produto'].toLowerCase().includes(termo) ||
-        produto.codigo.toString().includes(termo)
-      );
-
-      productListBody.innerHTML = '';
-      produtosFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina).forEach(produto => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${produto['Nome do Produto'] || '-'}</td>
-          <td>${produto.codigo}</td>
-          <td><a href="${produto.Link}" target="_blank">🔗 Acessar</a></td>
-        `;
-        productListBody.appendChild(tr);
-      });
-    }
-
-    searchInput.addEventListener('input', () => {
-      atualizarExibicao();
     });
-    
-    prevPageBtn.addEventListener('click', () => {
-      paginaAtual--;
-      atualizarExibicao();
-    });
-    
-    nextPageBtn.addEventListener('click', () => {
-      paginaAtual++;
-      atualizarExibicao();
-    });
-    
-    window.addEventListener('load', listarProdutos);
   </script>
 </body>
 </html>
