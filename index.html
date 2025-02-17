@@ -55,14 +55,6 @@
       background-color: #f8f8f8;
       font-weight: 700;
     }
-    .product-list tr:hover { background-color: #f9f9f9; }
-    .product-list td a {
-      text-decoration: none;
-      color: #007bff;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
     .pagination {
       display: flex;
       justify-content: center;
@@ -116,11 +108,11 @@
     const searchInput = document.querySelector('#searchInput');
     const prevPageBtn = document.querySelector('#prevPage');
     const nextPageBtn = document.querySelector('#nextPage');
-
+    
     let produtos = [];
     let paginaAtual = 1;
-    const itensPorPagina = 50;
-
+    const itensPorPagina = 100;
+    
     async function listarProdutos() {
       try {
         const { data, error } = await supabase
@@ -134,19 +126,16 @@
         atualizarExibicao();
       } catch (err) {
         console.error('Erro ao listar produtos:', err.message);
-        alert('Não foi possível listar produtos.');
       }
     }
-
+    
     function atualizarExibicao() {
-      const termo = searchInput.value.toLowerCase();
-      const produtosFiltrados = produtos.filter(produto =>
-        produto['Nome do Produto'].toLowerCase().includes(termo) ||
-        produto.codigo.toString().includes(termo)
-      );
-
+      const inicio = (paginaAtual - 1) * itensPorPagina;
+      const fim = inicio + itensPorPagina;
+      const produtosPagina = produtos.slice(inicio, fim);
+      
       productListBody.innerHTML = '';
-      produtosFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina).forEach(produto => {
+      produtosPagina.forEach(produto => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${produto['Nome do Produto'] || '-'}</td>
@@ -155,9 +144,25 @@
         `;
         productListBody.appendChild(tr);
       });
+      
+      prevPageBtn.disabled = paginaAtual === 1;
+      nextPageBtn.disabled = fim >= produtos.length;
     }
-
-    searchInput.addEventListener('input', atualizarExibicao);
+    
+    prevPageBtn.addEventListener('click', () => {
+      if (paginaAtual > 1) {
+        paginaAtual--;
+        atualizarExibicao();
+      }
+    });
+    
+    nextPageBtn.addEventListener('click', () => {
+      if ((paginaAtual * itensPorPagina) < produtos.length) {
+        paginaAtual++;
+        atualizarExibicao();
+      }
+    });
+    
     window.addEventListener('load', listarProdutos);
   </script>
 </body>
