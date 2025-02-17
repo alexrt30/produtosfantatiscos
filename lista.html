@@ -35,7 +35,6 @@
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      overflow-x: auto;
     }
     .search-box {
       width: 100%;
@@ -46,34 +45,34 @@
       outline: none;
       margin-bottom: 10px;
     }
-    table {
+    .product-list {
       width: 100%;
       border-collapse: collapse;
-      min-width: 350px;
+      margin-top: 10px;
     }
-    th, td {
+    .product-list th, .product-list td {
       padding: 10px;
       text-align: left;
       border-bottom: 1px solid #ddd;
-      font-size: 14px;
     }
-    th {
+    .product-list th {
       background-color: #f8f8f8;
       font-weight: 700;
     }
-    tr:hover {
+    .product-list tr:hover {
       background-color: #f9f9f9;
     }
-    td a {
+    .product-list td a {
       text-decoration: none;
       color: #007bff;
-      word-break: break-word;
-      display: block;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
     .pagination {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 10px;
       margin-top: 15px;
     }
     .pagination button {
@@ -90,16 +89,13 @@
       background-color: #ccc;
       cursor: not-allowed;
     }
-    .pagination button:hover:not(:disabled) {
-      background-color: #d44124;
-    }
   </style>
 </head>
 <body>
   <header>Lista de Produtos</header>
   <div class="container">
     <input type="text" id="searchInput" class="search-box" placeholder="Buscar por Nome ou Código">
-    <table id="produtosTable">
+    <table class="product-list" id="productList">
       <thead>
         <tr>
           <th>Nome</th>
@@ -111,8 +107,6 @@
         <!-- Preenchido via JS -->
       </tbody>
     </table>
-    
-    <!-- Botões de Paginação -->
     <div class="pagination">
       <button id="prevPage" disabled>Anterior</button>
       <button id="nextPage" disabled>Próximo</button>
@@ -121,22 +115,19 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
+    
     const supabaseUrl = 'https://utaadvmqokgwydohdxob.supabase.co';
     const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0YWFkdm1xb2tnd3lkb2hkeG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxMDkzNDMsImV4cCI6MjA1NDY4NTM0M30.0hOT14W2yIClVt_1PuXVs1f0vu3UpVfhri2aEOBhIlE';
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    const produtosTableBody = document.querySelector('#produtosTable tbody');
+    
+    const productListBody = document.querySelector('#productList tbody');
     const searchInput = document.querySelector('#searchInput');
     const prevPageBtn = document.querySelector('#prevPage');
     const nextPageBtn = document.querySelector('#nextPage');
 
     let produtos = [];
     let paginaAtual = 1;
-    const itensPorPagina = 100;
-
-    window.addEventListener('load', listarProdutos);
-    searchInput.addEventListener('input', atualizarExibicao);
+    const itensPorPagina = 50;
 
     async function listarProdutos() {
       try {
@@ -156,56 +147,29 @@
     }
 
     function atualizarExibicao() {
-      const termo = searchInput.value.toLowerCase();
-      const produtosFiltrados = produtos.filter(produto =>
-        produto['Nome do Produto'].toLowerCase().includes(termo) ||
-        produto.codigo.toString().includes(termo)
-      );
-
-      const totalPaginas = Math.ceil(produtosFiltrados.length / itensPorPagina);
-      paginaAtual = Math.min(paginaAtual, totalPaginas) || 1;
-
-      produtosTableBody.innerHTML = '';
-
-      const inicio = (paginaAtual - 1) * itensPorPagina;
-      const fim = inicio + itensPorPagina;
-      const produtosPagina = produtosFiltrados.slice(inicio, fim);
-
-      produtosPagina.forEach(produto => {
-        const nome = produto['Nome do Produto'] || produto.nome || '-';
+      productListBody.innerHTML = '';
+      produtos.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina).forEach(produto => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${nome}</td>
+          <td>${produto['Nome do Produto'] || '-'}</td>
           <td>${produto.codigo}</td>
           <td><a href="${produto.Link}" target="_blank">🔗 Acessar</a></td>
         `;
-        produtosTableBody.appendChild(tr);
+        productListBody.appendChild(tr);
       });
-
-      prevPageBtn.disabled = paginaAtual === 1;
-      nextPageBtn.disabled = paginaAtual >= totalPaginas;
     }
 
     prevPageBtn.addEventListener('click', () => {
-      if (paginaAtual > 1) {
-        paginaAtual--;
-        atualizarExibicao();
-      }
+      paginaAtual--;
+      atualizarExibicao();
     });
-
+    
     nextPageBtn.addEventListener('click', () => {
-      const termo = searchInput.value.toLowerCase();
-      const produtosFiltrados = produtos.filter(produto =>
-        produto['Nome do Produto'].toLowerCase().includes(termo) ||
-        produto.codigo.toString().includes(termo)
-      );
-
-      const totalPaginas = Math.ceil(produtosFiltrados.length / itensPorPagina);
-      if (paginaAtual < totalPaginas) {
-        paginaAtual++;
-        atualizarExibicao();
-      }
+      paginaAtual++;
+      atualizarExibicao();
     });
+    
+    window.addEventListener('load', listarProdutos);
   </script>
 </body>
 </html>
