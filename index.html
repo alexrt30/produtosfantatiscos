@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -32,56 +33,26 @@
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
-    .search-box {
+    table {
       width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      outline: none;
-      margin-bottom: 10px;
-    }
-    .product-list {
-      width: 100%;
-      border-collapse: collapse;
       margin-top: 10px;
+      border-collapse: collapse;
     }
-    .product-list th, .product-list td {
+    th, td {
       padding: 10px;
       text-align: left;
       border-bottom: 1px solid #ddd;
     }
-    .product-list th {
+    th {
       background-color: #f8f8f8;
       font-weight: 700;
-    }
-    .pagination {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 15px;
-    }
-    .pagination button {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 6px;
-      background-color: #ee4d2d;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .pagination button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
   <header>Lista de Produtos</header>
   <div class="container">
-    <input type="text" id="searchInput" class="search-box" placeholder="Buscar por Nome ou Código">
-    <table class="product-list" id="productList">
+    <table id="productTable" class="display">
       <thead>
         <tr>
           <th>Nome</th>
@@ -91,12 +62,10 @@
       </thead>
       <tbody></tbody>
     </table>
-    <div class="pagination">
-      <button id="prevPage" disabled>Anterior</button>
-      <button id="nextPage" disabled>Próximo</button>
-    </div>
   </div>
 
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     
@@ -104,65 +73,52 @@
     const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0YWFkdm1xb2tnd3lkb2hkeG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxMDkzNDMsImV4cCI6MjA1NDY4NTM0M30.0hOT14W2yIClVt_1PuXVs1f0vu3UpVfhri2aEOBhIlE';
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     
-    const productListBody = document.querySelector('#productList tbody');
-    const searchInput = document.querySelector('#searchInput');
-    const prevPageBtn = document.querySelector('#prevPage');
-    const nextPageBtn = document.querySelector('#nextPage');
-    
-    let produtos = [];
-    let paginaAtual = 1;
-    const itensPorPagina = 100;
-    
+    let table;
+
     async function listarProdutos() {
       try {
         const { data, error } = await supabase
           .from('Produtos')
-          .select('*')
-          .order('codigo', { ascending: false });
+          .select('*');
 
         if (error) throw error;
 
-        produtos = data;
-        atualizarExibicao();
+        popularTabela(data);
       } catch (err) {
         console.error('Erro ao listar produtos:', err.message);
       }
     }
-    
-    function atualizarExibicao() {
-      const inicio = (paginaAtual - 1) * itensPorPagina;
-      const fim = inicio + itensPorPagina;
-      const produtosPagina = produtos.slice(inicio, fim);
-      
-      productListBody.innerHTML = '';
-      produtosPagina.forEach(produto => {
+
+    function popularTabela(produtos) {
+      const tbody = document.querySelector('#productTable tbody');
+      tbody.innerHTML = '';
+
+      produtos.forEach(produto => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${produto['Nome do Produto'] || '-'}</td>
-          <td>${produto.codigo}</td>
-          <td><a href="${produto.Link}" target="_blank">Acessar</a></td>
+          <td>${produto.codigo || '-'}</td>
+          <td>${produto.Link ? `<a href="${produto.Link}" target="_blank">Acessar</a>` : '-'}</td>
         `;
-        productListBody.appendChild(tr);
+        tbody.appendChild(tr);
       });
-      
-      prevPageBtn.disabled = paginaAtual === 1;
-      nextPageBtn.disabled = fim >= produtos.length;
+
+      // Inicializa DataTable (ou destrói e recria caso já esteja inicializado)
+      if ($.fn.DataTable.isDataTable('#productTable')) {
+        table.destroy();
+      }
+      table = $('#productTable').DataTable({
+        pageLength: 100,
+        order: [[1, 'desc']], // **Ordena a coluna do Código (índice 1) do maior para o menor**
+        language: {
+          search: "Buscar:",
+          lengthMenu: "Mostrar _MENU_ registros por página",
+          info: "Mostrando _START_ a _END_ de _TOTAL_ produtos",
+          paginate: { first: "Primeiro", last: "Último", next: "Próximo", previous: "Anterior" }
+        }
+      });
     }
-    
-    prevPageBtn.addEventListener('click', () => {
-      if (paginaAtual > 1) {
-        paginaAtual--;
-        atualizarExibicao();
-      }
-    });
-    
-    nextPageBtn.addEventListener('click', () => {
-      if ((paginaAtual * itensPorPagina) < produtos.length) {
-        paginaAtual++;
-        atualizarExibicao();
-      }
-    });
-    
+
     window.addEventListener('load', listarProdutos);
   </script>
 </body>
