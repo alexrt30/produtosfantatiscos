@@ -66,57 +66,61 @@
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    
-    const supabaseUrl = 'https://utaadvmqokgwydohdxob.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0YWFkdm1xb2tnd3lkb2hkeG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkxMDkzNDMsImV4cCI6MjA1NDY4NTM0M30.0hOT14W2yIClVt_1PuXVs1f0vu3UpVfhri2aEOBhIlE';
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRUTR9f_QGMXvTBGNCJRn4ekm5vLGV660BGio_g8wX1lT3P8oN3w6nfrQBlgSV0l9RsDeGVuJiHLIAM/pubhtml";
+    const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(sheetUrl);
+
     let table;
 
-    async function listarProdutos() {
-      try {
-        const { data, error } = await supabase
-          .from('Produtos')
-          .select('*');
+    function listarProdutos() {
+      fetch(proxyUrl)
+        .then(response => response.json())
+        .then(data => {
+          let parser = new DOMParser();
+          let doc = parser.parseFromString(data.contents, "text/html");
+          let tabela = doc.querySelector("table");
 
-        if (error) throw error;
+          if (tabela) {
+            let linhas = tabela.querySelectorAll("tr");
+            const tbody = document.querySelector('#productTable tbody');
+            tbody.innerHTML = "";
 
-        popularTabela(data);
-      } catch (err) {
-        console.error('Erro ao listar produtos:', err.message);
-      }
-    }
+            for (let i = 1; i < linhas.length; i++) {
+              let colunas = linhas[i].querySelectorAll("td");
+              if (colunas.length >= 3) {
+                let nome = colunas[0].innerText.trim();
+                let link = colunas[1].innerText.trim();
+                let codigo = colunas[2].innerText.trim();
 
-    function popularTabela(produtos) {
-      const tbody = document.querySelector('#productTable tbody');
-      tbody.innerHTML = '';
+                let tr = document.createElement("tr");
+                tr.innerHTML = `
+                  <td>${nome}</td>
+                  <td>${codigo}</td>
+                  <td><a href="${link}" target="_blank">Acessar</a></td>
+                `;
+                tbody.appendChild(tr);
+              }
+            }
 
-      produtos.forEach(produto => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${produto['Nome do Produto'] || '-'}</td>
-          <td>${produto.codigo || '-'}</td>
-          <td>${produto.Link ? `<a href="${produto.Link}" target="_blank">Acessar</a>` : '-'}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      // Inicializa DataTable (ou destrói e recria caso já esteja inicializado)
-      if ($.fn.DataTable.isDataTable('#productTable')) {
-        table.destroy();
-      }
-      table = $('#productTable').DataTable({
-        pageLength: 100,
-        order: [[1, 'desc']], // **Ordena a coluna do Código (índice 1) do maior para o menor**
-        language: {
-          search: "Buscar:",
-          lengthMenu: "Mostrar _MENU_ registros por página",
-          info: "Mostrando _START_ a _END_ de _TOTAL_ produtos",
-          paginate: { first: "Primeiro", last: "Último", next: "Próximo", previous: "Anterior" }
-        }
-      });
+            // Inicializa DataTable (ou destrói e recria caso já esteja inicializado)
+            if ($.fn.DataTable.isDataTable('#productTable')) {
+              table.destroy();
+            }
+            table = $('#productTable').DataTable({
+              pageLength: 10,
+              order: [[1, 'desc']], // Ordena pela coluna "Código"
+              language: {
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros por página",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ produtos",
+                paginate: { first: "Primeiro", last: "Último", next: "Próximo", previous: "Anterior" }
+              }
+            });
+          } else {
+            console.error("Tabela não encontrada!");
+          }
+        })
+        .catch(error => console.error("Erro ao carregar os produtos:", error));
     }
 
     window.addEventListener('load', listarProdutos);
