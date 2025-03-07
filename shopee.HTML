@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Links</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        input { margin-bottom: 10px; padding: 10px; width: 80%; font-size: 16px; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+        a { text-decoration: none; color: blue; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Lista de Links</h2>
+    <input type="text" id="search" placeholder="Buscar link..." onkeyup="filtrar()">
+    <ul id="lista"></ul>
+
+    <script>
+        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRUTR9f_QGMXvTBGNCJRn4ekm5vLGV660BGio_g8wX1lT3P8oN3w6nfrQBlgSV0l9RsDeGVuJiHLIAM/pubhtml";
+        const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(sheetUrl);
+
+        fetch(proxyUrl)
+            .then(response => response.json())
+            .then(data => {
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(data.contents, "text/html");
+                let tabela = doc.querySelector("table");
+
+                if (tabela) {
+                    let linhas = tabela.querySelectorAll("tr");
+                    const lista = document.getElementById("lista");
+
+                    for (let i = 1; i < linhas.length; i++) {
+                        let colunas = linhas[i].querySelectorAll("td");
+                        if (colunas.length >= 2) {
+                            let nome = colunas[0].innerText.trim();
+                            let link = colunas[1].innerText.trim();
+
+                            let li = document.createElement("li");
+                            li.innerHTML = `<a href="${link}" target="_blank">${nome}</a>`;
+                            lista.appendChild(li);
+                        }
+                    }
+                } else {
+                    console.error("Tabela não encontrada!");
+                }
+            })
+            .catch(error => console.error("Erro ao carregar os links:", error));
+
+        function filtrar() {
+            let input = document.getElementById("search").value.toLowerCase();
+            let itens = document.querySelectorAll("#lista li");
+            itens.forEach(item => {
+                let texto = item.textContent.toLowerCase();
+                item.style.display = texto.includes(input) ? "" : "none";
+            });
+        }
+    </script>
+</body>
+</html>
